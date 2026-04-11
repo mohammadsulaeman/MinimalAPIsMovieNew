@@ -1,6 +1,7 @@
 using FluentValidation;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MinimalAPIsMovieNew.Endpoints;
@@ -124,11 +125,18 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 var app = builder.Build();
-if (builder.Environment.IsDevelopment())
+if (builder.Environment.IsDevelopment() 
+    || builder.Environment.IsProduction())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(@"D:\ImagesMovieNet"),
+    RequestPath = ""
+});
 
 app.MapGet("/", () => "Hello World!");
 // Penggunaan Cors

@@ -1,7 +1,7 @@
 ﻿namespace MinimalAPIsMovieNew.Services
 {
     public class LocalFileStorage(IWebHostEnvironment env,
-        IHttpContextAccessor httpContextAccessor) : IFileStorage
+        IHttpContextAccessor httpContextAccessor,IConfiguration configuration) : IFileStorage
     {
         Task IFileStorage.Delete(string? route, string container)
         {
@@ -9,22 +9,29 @@
             {
                 return Task.CompletedTask;
             }
-
-            var fileName = Path.GetFileName(route);
-            var fileDirectory = Path.Combine(env.WebRootPath, container, fileName);
-
-            if (File.Exists(fileDirectory))
+            var baseAppImagesFolder = configuration.GetValue<string>("directoriimages");
+            if (baseAppImagesFolder is not null)
             {
-                File.Delete(fileDirectory);
+                var fileName = Path.GetFileName(route);
+                var fileDirectory = Path.Combine(baseAppImagesFolder, container, fileName);
+
+                if (File.Exists(fileDirectory))
+                {
+                    File.Delete(fileDirectory);
+                }
+                
             }
+
             return Task.CompletedTask;
+
         }
 
         async Task<string> IFileStorage.Store(string container, IFormFile file)
         {
             var extension = Path.GetExtension(file.FileName);
             var fileName = $"{Guid.NewGuid()}{extension}";
-            string folder = Path.Combine(env.WebRootPath, container);
+            var baseAppImagesFolder = configuration.GetValue<string>("directoriimages");
+            string folder = Path.Combine(baseAppImagesFolder!, container);
 
             if (!Directory.Exists(folder))
             {
@@ -32,6 +39,13 @@
             }
 
             string route = Path.Combine(folder, fileName);
+
+            // save file
+            using (var stream = new FileStream(route, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
             using (var ms = new MemoryStream())
             {
                 await file.CopyToAsync(ms);
