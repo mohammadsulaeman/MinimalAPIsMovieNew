@@ -132,6 +132,13 @@ if (builder.Environment.IsDevelopment()
     app.UseSwaggerUI();
 }
 
+var folderPath = builder.Configuration.GetValue<string>("directoriimages");
+// Cek apakah folder sudah ada
+if (!Directory.Exists(folderPath))
+{
+    Directory.CreateDirectory(folderPath!);
+}
+
 app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(@"D:\ImagesMovieNet"),
