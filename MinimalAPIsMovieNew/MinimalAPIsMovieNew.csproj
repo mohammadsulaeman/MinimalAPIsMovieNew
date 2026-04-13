@@ -18,6 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="DB SQL Project\" />
     <Folder Include="wwwroot\" />
   </ItemGroup>
 
