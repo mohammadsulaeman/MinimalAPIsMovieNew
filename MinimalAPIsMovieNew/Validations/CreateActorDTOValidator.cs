@@ -12,7 +12,7 @@ namespace MinimalAPIsMovieNew.Validations
                 .MaximumLength(150)
                  .WithMessage("The field {PropertyName} should be less than {MaxLength} characters");
 
-            var minimumDate = new DateTime(1990, 1, 1);
+            var minimumDate = new DateTime(1960, 1, 1);
 
             RuleFor(p => p.DateOfBirth).GreaterThanOrEqualTo(minimumDate)
                 .WithMessage(ValidationUtilities.GreateThanDate(minimumDate));
