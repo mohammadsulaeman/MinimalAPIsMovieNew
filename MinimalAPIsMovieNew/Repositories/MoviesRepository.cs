@@ -23,7 +23,7 @@ namespace MinimalAPIsMovieNew.Repositories
             using (var connection = new SqlConnection(connectionString))
             {
                 var id = await connection.QuerySingleAsync<int>("Movies_Create",
-                    new { movie.Title, movie.Poster, movie.ReleaseDate, movie.InTheaters },
+                    new { movie.Title, movie.Poster, movie.ReleaseDate, movie.inTheaters },
                     commandType: CommandType.StoredProcedure);
 
                 movie.Id = id;
@@ -35,9 +35,44 @@ namespace MinimalAPIsMovieNew.Repositories
         {
             using (var connection = new SqlConnection(connectionString))
             {
-                var movies = await connection.QueryAsync<Movie>("Movies_GetAll",
+                //var movies = await connection.QueryAsync<Movie>("Movies_GetAll",
+                //    new { pagination.Page, pagination.RecordsPerPage },
+                //    commandType: CommandType.StoredProcedure);
+                var movies = new List<Movie>();
+                using (var multi = await connection.QueryMultipleAsync("Movies_GetAll",
                     new { pagination.Page, pagination.RecordsPerPage },
-                    commandType: CommandType.StoredProcedure);
+                    commandType: CommandType.StoredProcedure))
+                {
+                    var movie = await multi.ReadFirstAsync<Movie>();
+                    var comments = await multi.ReadAsync<Comment>();
+                    var genres = await multi.ReadAsync<Genre>();
+                    var actors = await multi.ReadAsync<ActorMovieDTO>();
+
+                    movie.comments = comments.ToList();
+
+                    foreach (var genre in genres)
+                    {
+                        movie.GenresMovies.Add(new GenreMovie
+                        {
+                            GenreId = genre.Id,
+                            Genre = genre
+                        });
+                    }
+
+                    foreach (var actor in actors)
+                    {
+                        movie.ActorsMovies.Add(new ActorMovie
+                        {
+                            ActorId = actor.Id,
+                            Character = actor.Character,
+                            Actor = new Actor { Name = actor.Name }
+                        });
+
+                       
+                    }
+
+                    movies.Add(movie);
+                }
 
                 var moviesCount = await connection.QuerySingleAsync<int>("Movies_Count",
                     commandType: CommandType.StoredProcedure);
@@ -117,7 +152,7 @@ namespace MinimalAPIsMovieNew.Repositories
                     movie.Title,
                     movie.Poster,
                     movie.ReleaseDate,
-                    movie.InTheaters
+                    movie.inTheaters
                 },
                 commandType: CommandType.StoredProcedure);
             }
